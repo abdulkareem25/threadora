@@ -2,6 +2,7 @@ import express from 'express';
 import morgan from 'morgan';
 import authRoutes from "./routes/auth.route.js";
 import errorHandler from "./middlewares/error.middleware.js";
+import notFoundHandler from "./middlewares/notFound.middleware.js";
 
 const app = express();
 
@@ -16,5 +17,6 @@ app.get('/health', (req, res) => {
 });
 
 app.use(errorHandler);
+app.use(notFoundHandler);
 
 export default app;
