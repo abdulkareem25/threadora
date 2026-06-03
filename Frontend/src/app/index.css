@@ -1,0 +1,32 @@
+/* ============================================================
+   THREADORA — GLOBAL BASE STYLES
+   Font substitutes from DESIGN.md:
+     Bebas Neue  → Nike Futura ND  (display-campaign tier)
+     Inter       → Helvetica Now Text/Medium  (UI tier)
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; }
+
+/* ── Dark canvas baseline (DESIGN.md tokens inverted) ── */
+html {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #0c0c0c;     /* --color-canvas  */
+  color: #f0f0f0;                 /* --color-ink     */
+  font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar — dark theme */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #0c0c0c; }
+::-webkit-scrollbar-thumb { background: #2c2c2e; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3c3c3e; }
