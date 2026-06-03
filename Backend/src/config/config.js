@@ -16,6 +16,7 @@ if(!process.env.JWT_SECRET) {
 }
 
 const config = {
+  NODE_ENV: process.env.NODE_ENV,
   PORT: process.env.PORT,
   DB_URI: process.env.DB_URI,
   JWT_SECRET: process.env.JWT_SECRET,

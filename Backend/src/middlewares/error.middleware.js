@@ -1,3 +1,5 @@
+import config from "../config/config.js";
+
 const errorMiddleware = (err, req, res, next) => {
 
   console.error(err);
@@ -15,6 +17,10 @@ const errorMiddleware = (err, req, res, next) => {
   if (err.code === 11000) {
     statusCode = 400;
     message = "Duplicate field value";
+  }
+
+  if(config.NODE_ENV === "production" && statusCode === 500) {
+    message = "Something went wrong. Please try again later.";
   }
 
   res.status(statusCode).json({
