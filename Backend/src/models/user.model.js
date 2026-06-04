@@ -14,17 +14,24 @@ const userSchema = new mongoose.Schema({
   phone: {
     type: String,
     length: [10, 'Phone number must be 10 digits'],
-    required: true,
+    required: function() {
+      return !this.googleId;
+    },
   },
   password: {
     type: String,
-    required: true,
+    required: function() {
+      return !this.googleId;
+    },
   },
   role: {
     type: String,
     enum: ['buyer', 'seller'],
     default: 'buyer',
   },
+  googleId: {
+    type: String,
+  }
 }, {
   timestamps: true,
 });

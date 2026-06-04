@@ -2,8 +2,6 @@ import express from "express";
 import {
   signupValidator,
   loginValidator,
-  emailValidator,
-  tokenValidator,
 } from "../validators/auth.validator.js";
 import validateMiddleware from "../middlewares/validate.middleware.js";
 import {
@@ -13,6 +11,7 @@ import {
   logoutController
 } from "../controllers/auth.controller.js";
 import authMiddleware from "../middlewares/auth.middleware.js";
+import passport from "passport";
 
 const router = express.Router();
 
@@ -42,6 +41,31 @@ router.post(
   loginValidator,
   validateMiddleware,
   loginController
+);
+
+/**
+ * @route GET /api/auth/google
+ * @desc Login user with Google
+ * @access Public
+ */
+
+router.get(
+  "/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+/**
+ * @route GET /api/auth/google/callback
+ * @desc Callback for Google login
+ * @access Public
+ */
+
+router.get(
+  "/google/callback",
+  passport.authenticate("google", { failureRedirect: "/login" }),
+  (req, res) => {
+    res.redirect("/");
+  }
 );
 
 /**
