@@ -485,6 +485,11 @@
   }
 }
 
+.auth-btn-social .auth-btn-spinner {
+  border-color: rgba(12, 12, 12, 0.25);
+  border-top-color: var(--color-ink);
+}
+
 /* Social button — button-secondary (soft-cloud pill) */
 .auth-btn-social {
   flex: 1;
