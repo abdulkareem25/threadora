@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
+import config from "../config/config.js";
 
 export const signup = async ({
   fullName,
@@ -24,7 +25,22 @@ export const signup = async ({
     role
   });
 
-  
+  const token = jwt.sign({
+    id: user._id
+  }, config.JWT_SECRET, {
+    expiresIn: "7d"
+  });
+
+  return {
+    user: {
+      _id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+    },
+    token
+  };
 };
 
 export const login = async ({ credential, password }) => {
@@ -49,6 +65,12 @@ export const login = async ({ credential, password }) => {
     throw error;
   }
 
+  const token = jwt.sign({
+    id: user._id
+  }, config.JWT_SECRET, {
+    expiresIn: "7d"
+  });
+
   return {
     user: {
       _id: user._id,
@@ -57,7 +79,37 @@ export const login = async ({ credential, password }) => {
       phone: user.phone,
       role: user.role,
     },
+    token
   };
+};
+
+export const google = async ({
+  id,
+  displayName,
+  email
+}) => {
+  let user = await User.findOne({
+    email
+  })
+
+  // remove nickname from display name
+  displayName = displayName.split(' (')[0];
+
+  if (!user) {
+    user = await User.create({
+      email,
+      googleId: id,
+      fullName: displayName,
+    })
+  }
+
+  const token = jwt.sign({
+    id: user._id,
+  }, config.JWT_SECRET, {
+    expiresIn: "7d"
+  })
+
+  return token;
 };
 
 export const getUser = async (userId) => {

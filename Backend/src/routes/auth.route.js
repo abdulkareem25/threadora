@@ -7,6 +7,7 @@ import validateMiddleware from "../middlewares/validate.middleware.js";
 import {
   signupController,
   loginController,
+  googleController,
   getUserController,
   logoutController
 } from "../controllers/auth.controller.js";
@@ -51,7 +52,7 @@ router.post(
 
 router.get(
   "/google",
-  passport.authenticate("google", { scope: ["profile", "email"] })
+  passport.authenticate("google", { scope: ["profile", "email"], session: false })
 );
 
 /**
@@ -62,10 +63,8 @@ router.get(
 
 router.get(
   "/google/callback",
-  passport.authenticate("google", { failureRedirect: "/login" }),
-  (req, res) => {
-    res.redirect("/");
-  }
+  passport.authenticate("google", { failureRedirect: "/login", session: false }),
+  googleController
 );
 
 /**

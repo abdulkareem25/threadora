@@ -1,3 +1,4 @@
+import config from "../config/config.js";
 import * as authService from "../services/auth.service.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
@@ -10,7 +11,7 @@ export const signupController = asyncHandler(async (req, res) => {
         role
     } = req.body;
 
-    await authService.signup({
+    const { user, token } = await authService.signup({
         fullName,
         email,
         phone,
@@ -18,18 +19,31 @@ export const signupController = asyncHandler(async (req, res) => {
         role
     });
 
+    res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+    });
+
     res.status(201).json({
         success: true,
-        message: "Signup successful."
+        message: "Signup successful.",
+        user,
     });
 });
 
 export const loginController = asyncHandler(async (req, res) => {
     const { credential, password } = req.body;
 
-    const { user } = await authService.login({
+    const { user, token } = await authService.login({
         credential,
         password
+    });
+
+    res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
     });
 
     res.status(200).json({
@@ -41,30 +55,23 @@ export const loginController = asyncHandler(async (req, res) => {
 
 export const googleController = asyncHandler(async (req, res) => {
 
+    console.log(req.user)
     const { id, displayName, emails } = req.user
     const email = emails[0].value;
 
-    let user = await userModel.findOne({
+    const { token } = await authService.google({
+        id,
+        displayName,
         email
     })
 
-    if (!user) {
-        user = await userModel.create({
-            email,
-            googleId: id,
-            fullname: displayName,
-        })
-    }
+    res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+    });
 
-    const token = jwt.sign({
-        id: user._id,
-    }, config.JWT_SECRET, {
-        expiresIn: "7d"
-    })
-
-    res.cookie("token", token)
-
-    res.redirect(config.CLIENT_URL)
+    res.redirect(config.CLIENT_URL);
 });
 
 export const getUserController = asyncHandler(async (req, res) => {

@@ -6,11 +6,13 @@ import notFoundHandler from "./middlewares/notFound.middleware.js";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import config from './config/config.js';
+import cookieParser from 'cookie-parser';
 
 const app = express();
 
 app.use(express.json());
 app.use(morgan('dev'));
+app.use(cookieParser());
 
 app.use(passport.initialize());
 

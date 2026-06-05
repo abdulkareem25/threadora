@@ -20,7 +20,7 @@ const errorMiddleware = (err, req, res, next) => {
   }
 
   if(config.NODE_ENV === "production" && statusCode === 500) {
-    message = "Something went wrong. Please try again later.";
+    message = "Server Error. Please try again later.";
   }
 
   res.status(statusCode).json({

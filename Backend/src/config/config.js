@@ -20,8 +20,8 @@ if(!process.env.CLIENT_ID) {
   throw new Error('CLIENT_ID is not defined in environment variables');
 }
 
-if(!process.env.CLIENT_SCERET) {
-  throw new Error('CLIENT_SCERET is not defined in environment variables');
+if(!process.env.CLIENT_SECRET) {
+  throw new Error('CLIENT_SECRET is not defined in environment variables');
 }
 
 const config = {
