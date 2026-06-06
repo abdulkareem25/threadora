@@ -1,6 +1,7 @@
 import express from 'express';
 import morgan from 'morgan';
 import authRoutes from "./routes/auth.route.js";
+import productRoutes from "./routes/product.route.js";
 import errorHandler from "./middlewares/error.middleware.js";
 import notFoundHandler from "./middlewares/notFound.middleware.js";
 import passport from "passport";
@@ -29,6 +30,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/products', productRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

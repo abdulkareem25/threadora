@@ -1,6 +1,17 @@
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 
+export const authSeller = async (req, res, next) => {
+  
+    if (req.user.role !== 'seller') {
+      const error = new Error('Forbidden - Only sellers can access this resource');
+      error.statusCode = 403;
+      throw error;
+    }
+
+    next();
+};
+
 const authMiddleware = async (req, res, next) => {
   try {
     let token, error;
