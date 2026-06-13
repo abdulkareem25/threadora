@@ -8,21 +8,16 @@
 @import "tailwindcss";
 
 /* ── Reset ── */
-*, *::before, *::after { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── Dark canvas baseline (DESIGN.md tokens inverted) ── */
-html {
-  color-scheme: dark;
-}
+html { height: 100%; }
 
 body {
-  margin: 0;
-  padding: 0;
-  background-color: #0c0c0c;     /* --color-canvas  */
-  color: #f0f0f0;                 /* --color-ink     */
+  min-height: 100%;
   font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Background and color are controlled at the feature / page level */
 }
 
 /* Scrollbar — dark theme */
