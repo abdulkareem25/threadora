@@ -1,18 +1,20 @@
-# 🧵 Threadora
+﻿# 🧵 Threadora
 
-A modern, full-stack web application built with cutting-edge technologies for seamless product management and secure authentication.
+A full-stack e-commerce marketplace built on a modern JavaScript stack — multi-role authentication, a product catalog with rich client-side filtering, and a clean feature-sliced frontend architecture.
 
 ---
 
 ## 🎯 Overview
 
-Threadora is a production-ready full-stack application demonstrating professional software engineering practices, including:
-- **Secure Authentication** with JWT and Google OAuth integration
-- **RESTful API** with comprehensive validation and error handling
-- **Modern Frontend** with responsive UI and state management
-- **MongoDB** integration with Mongoose ORM
-- **Cloud Image Storage** using ImageKit
-- **Professional Code Architecture** with middleware pattern and service layer
+Threadora is a production-oriented full-stack application with a clear separation between **Buyer** and **Seller** roles. Sellers can list products with cloud-hosted images; Buyers browse a polished catalog with real-time filtering, color-swatch selection, and wishlist interactions — all gated behind JWT-authenticated, role-enforced API endpoints.
+
+Key engineering highlights:
+- **Role-based access control** — `authSeller` middleware gates every seller-only route
+- **Multi-strategy auth** — email/phone + password *and* Google OAuth 2.0 (Passport.js, stateless/session-less)
+- **Feature-sliced frontend** — each domain (auth, products, shared) is a self-contained module with its own pages, hooks, services, states, and styles
+- **Redux Toolkit** auth state — `setUser / setLoading / setError` pattern with a `useAuth` custom hook as the single integration surface
+- **ImageKit** cloud storage — products support an `images[]` array backed by CDN delivery
+- **Global error pipeline** — `notFoundHandler` + `errorHandler` middleware with no sensitive data leakage
 
 ---
 
@@ -22,36 +24,37 @@ Threadora is a production-ready full-stack application demonstrating professiona
 ```
 Node.js + Express 5.2.1
 ├── Authentication
-│   ├── JWT (jsonwebtoken)
-│   ├── Passport.js with Google OAuth 2.0
-│   └── Password hashing (bcryptjs)
+│   ├── JWT (jsonwebtoken) — stateless, HTTP-only cookies
+│   ├── Passport.js — Google OAuth 2.0 (session: false)
+│   └── bcryptjs — pre-save hook hashing with 10 salt rounds
 ├── Database
 │   └── MongoDB + Mongoose 9.6.3
 ├── File Management
-│   ├── Multer for uploads
-│   └── ImageKit for cloud storage
+│   ├── Multer — multipart/form-data parsing
+│   └── ImageKit — CDN-backed cloud image storage
 ├── Validation & Security
-│   ├── express-validator
-│   ├── CORS enabled
-│   └── Cookie Parser
-└── Logging
-    └── Morgan HTTP logger
+│   ├── express-validator — schema-level request validation
+│   ├── CORS — configured for trusted origins
+│   └── cookie-parser — HTTP-only cookie support
+└── Observability
+    └── Morgan — HTTP request logging (dev format)
 ```
 
 ### Frontend
 ```
 React 19.0 + Vite
 ├── State Management
-│   └── Redux Toolkit
+│   └── Redux Toolkit — authSlice (user, loading, error)
 ├── Routing
-│   └── React Router v7
+│   └── React Router v7 — createBrowserRouter
 ├── Styling
-│   └── Tailwind CSS v4
+│   └── Tailwind CSS v4 + scoped feature CSS
 ├── HTTP Client
-│   └── Axios
+│   └── Axios — centralised auth API service
 └── UI/UX
-    ├── React Toastify (notifications)
-    └── Responsive Design
+    ├── React Toastify — toast notifications
+    ├── Inline SVG icon system — zero external icon dependency
+    └── Color swatch selector, wishlist toggle, filter chips
 ```
 
 ---
@@ -61,34 +64,66 @@ React 19.0 + Vite
 ```
 Threadora/
 ├── Backend/
+│   ├── server.js                     # Entry point — starts HTTP server
 │   ├── src/
-│   │   ├── app.js              # Express app configuration
-│   │   ├── config/             # Database & environment config
-│   │   ├── controllers/        # Business logic handlers
-│   │   ├── middlewares/        # Auth, validation, error handling
-│   │   ├── models/             # MongoDB schemas (User, Product)
-│   │   ├── routes/             # API endpoints
-│   │   ├── services/           # Business logic services
-│   │   ├── validators/         # Request validation rules
-│   │   └── utils/              # Async handler utilities
-│   ├── server.js               # Entry point
-│   └── package.json            # Dependencies
+│   │   ├── app.js                    # Express app — middleware, routes, Passport bootstrap
+│   │   ├── config/                   # Centralised env config (config.js)
+│   │   ├── controllers/
+│   │   │   ├── auth.controller.js    # signup, login, google, getUser, logout
+│   │   │   └── product.controller.js # createProduct, getProducts
+│   │   ├── middlewares/
+│   │   │   ├── auth.middleware.js    # authMiddleware (JWT) + authSeller (role guard)
+│   │   │   ├── validate.middleware.js # express-validator error formatter
+│   │   │   ├── error.middleware.js   # Global error handler
+│   │   │   └── notFound.middleware.js # 404 catch-all
+│   │   ├── models/
+│   │   │   ├── user.model.js         # User schema — roles: buyer | seller, optional googleId
+│   │   │   └── product.model.js      # Product schema — images[], price{amount,currency}, stock
+│   │   ├── routes/
+│   │   │   ├── auth.route.js         # /api/auth — signup, login, google, me, logout
+│   │   │   └── product.route.js      # /api/products — seller-gated CRUD
+│   │   ├── services/                 # Business logic decoupled from controllers
+│   │   ├── validators/
+│   │   │   ├── auth.validator.js     # signupValidator, loginValidator
+│   │   │   └── product.validator.js  # createProductValidator
+│   │   └── utils/                    # asyncHandler wrapper
+│   └── package.json
 │
 └── Frontend/
     ├── src/
-    │   ├── app/                # App configuration
-    │   │   ├── App.jsx         # Root component
-    │   │   ├── app.routes.jsx  # Route definitions
-    │   │   └── app.store.js    # Redux store
-    │   └── features/           # Feature modules
-    │       ├── auth/           # Authentication feature
-    │       │   ├── components/ # Login, Signup, Protected routes
-    │       │   ├── hooks/      # useAuth hook
-    │       │   ├── pages/      # Auth pages
-    │       │   ├── services/   # Auth API calls
-    │       │   └── states/     # Redux slices
-    │       └── shared/         # Shared components
-    └── vite.config.js          # Build configuration
+    │   ├── main.jsx                  # React DOM entry — Redux Provider + RouterProvider
+    │   ├── app/
+    │   │   ├── App.jsx               # Root — RouterProvider wrapper
+    │   │   ├── app.routes.jsx        # Route definitions: /, /login, /signup
+    │   │   ├── app.store.js          # Redux store
+    │   │   └── index.css             # Global resets + design tokens
+    │   └── features/
+    │       ├── auth/                 # Auth feature module
+    │       │   ├── components/
+    │       │   │   ├── GoogleButton.jsx    # OAuth trigger button
+    │       │   │   └── Protected.jsx       # Route guard component
+    │       │   ├── hooks/
+    │       │   │   └── useAuth.js          # loginUser, signupUser, logoutUser
+    │       │   ├── pages/
+    │       │   │   ├── Login.jsx           # Email/phone + password form
+    │       │   │   └── Signup.jsx          # Multi-step signup with role selection
+    │       │   ├── services/
+    │       │   │   └── auth.api.js         # Axios auth endpoints
+    │       │   ├── states/
+    │       │   │   └── auth.slice.js       # Redux slice — user, loading, error
+    │       │   └── styles/
+    │       │       └── auth.css            # Scoped auth UI styles
+    │       ├── products/             # Products feature module
+    │       │   ├── pages/
+    │       │   │   └── Home.jsx            # Product catalog — filtering, swatches, wishlist
+    │       │   └── styles/
+    │       │       └── products.css        # Scoped product UI styles
+    │       └── shared/               # Cross-feature components
+    │           ├── components/
+    │           │   ├── Header.jsx          # Top nav — logo, links, mobile menu
+    │           │   └── Footer.jsx          # Site footer
+    │           └── styles/
+    └── vite.config.js
 ```
 
 ---
@@ -96,63 +131,80 @@ Threadora/
 ## ✨ Key Features
 
 ### Authentication & Authorization
-- ✅ JWT-based authentication
-- ✅ Google OAuth 2.0 integration
-- ✅ Secure password hashing with bcryptjs
-- ✅ Protected routes with middleware
-- ✅ Cookie-based session management
+- ✅ JWT issued on login/signup, stored in HTTP-only cookies
+- ✅ Google OAuth 2.0 — Passport strategy, session-less (`session: false`)
+- ✅ bcryptjs pre-save hook — passwords hashed before hitting the DB
+- ✅ `authMiddleware` — validates JWT, attaches `req.user` to the request
+- ✅ `authSeller` — role guard; rejects non-seller requests with 403
+- ✅ `GET /api/auth/me` — hydrates the Redux store on app load
+- ✅ `POST /api/auth/logout` — clears the JWT cookie server-side
 
-### Product Management
-- ✅ CRUD operations for products
-- ✅ Image upload with cloud storage
-- ✅ Comprehensive input validation
-- ✅ Error handling and logging
+### User Roles
+- ✅ **Buyer** (default) — browse catalog, wishlist items
+- ✅ **Seller** — create and manage product listings
+- ✅ Role selection at signup via an accessible card-picker UI
+- ✅ `phone` and `password` fields conditionally required — skipped for OAuth users
 
-### Backend Architecture
-- ✅ Separation of concerns (Controllers, Services, Models)
-- ✅ Middleware pattern for request processing
-- ✅ Global error handling
-- ✅ Request validation layer
-- ✅ Async/await error wrapper utilities
+### Product Catalog — Home Page
+- ✅ Product grid with full-bleed imagery
+- ✅ Badge overlays — *Just In*, *Member Exclusive*, *Sale*, *Coming Soon*
+- ✅ Color swatch selector (up to 5 visible, overflow count shown)
+- ✅ Sale price with percentage-off badge calculated dynamically
+- ✅ Wishlist toggle (heart icon) per card
+- ✅ Filter chips — *All / New & Featured / Apparel / Accessories / Sale*
+- ✅ Responsive navigation with mobile hamburger menu and slide-in drawer
+- ✅ Inline SVG icon system — no external icon library
 
-### Frontend Features
-- ✅ Modern React with Hooks
-- ✅ Redux state management
-- ✅ Client-side routing
-- ✅ Responsive Tailwind CSS design
-- ✅ Toast notifications for user feedback
-- ✅ Protected routes and role-based access
+### Product Management (Seller API)
+- ✅ `POST /api/products` — create product (seller only); supports `images[]`, multi-currency `price`
+- ✅ `GET /api/products` — fetch authenticated seller's own listings
+- ✅ `name`, `description`, `category`, `stock`, `price.amount` — all validated server-side
+- ✅ ImageKit integration for cloud-hosted product images
+
+### Frontend Architecture
+- ✅ Feature-sliced directory structure — auth, products, shared are fully independent modules
+- ✅ `useAuth` hook — single integration point for all auth mutations
+- ✅ `useSelector` / Redux Toolkit — `loading` and `error` states drive UI feedback
+- ✅ Client-side field validation on Login and Signup before hitting the API
+- ✅ `Protected.jsx` — declarative route guard for authenticated-only pages
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v16 or higher)
-- MongoDB local instance or MongoDB Atlas connection
-- Google OAuth credentials
+- Node.js v18+
+- MongoDB (local or Atlas)
+- Google OAuth 2.0 credentials
+- ImageKit account
 
 ### Backend Setup
 
 ```bash
 cd Backend
 npm install
+```
 
-# Create .env file with:
-# PORT=5000
-# MONGODB_URI=your_mongodb_uri
-# JWT_SECRET=your_secret_key
-# GOOGLE_CLIENT_ID=your_client_id
-# GOOGLE_CLIENT_SECRET=your_client_secret
-# IMAGEKIT_PUBLIC_KEY=your_imagekit_key
-# IMAGEKIT_PRIVATE_KEY=your_private_key
-# IMAGEKIT_URL_ENDPOINT=your_url_endpoint
+Create a `.env` file:
 
-# Development
-npm run dev
+```env
+PORT=5000
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret_key
 
-# Production
-npm run start
+# Google OAuth
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+# ImageKit
+IMAGEKIT_PUBLIC_KEY=your_imagekit_public_key
+IMAGEKIT_PRIVATE_KEY=your_imagekit_private_key
+IMAGEKIT_URL_ENDPOINT=your_imagekit_url_endpoint
+```
+
+```bash
+npm run dev     # Development with hot-reload (nodemon)
+npm run start   # Production server
 ```
 
 ### Frontend Setup
@@ -163,115 +215,125 @@ npm install
 npm run dev
 ```
 
-Visit `http://localhost:5173` (or your configured Vite port)
+Open `http://localhost:5173`
 
 ---
 
-## 📝 API Endpoints
+## 📝 API Reference
 
-### Authentication Routes
-- `POST /api/auth/signup` - User registration
-- `POST /api/auth/login` - User login
-- `POST /api/auth/logout` - User logout
-- `GET /api/auth/google` - Google OAuth
+### Auth — `/api/auth`
 
-### Product Routes
-- `GET /api/products` - Get all products
-- `POST /api/products` - Create product (authenticated)
-- `GET /api/products/:id` - Get product by ID
-- `PUT /api/products/:id` - Update product (authenticated)
-- `DELETE /api/products/:id` - Delete product (authenticated)
+| Method | Endpoint | Access | Description |
+|--------|----------|--------|-------------|
+| `POST` | `/signup` | Public | Register with `fullName`, `email`, `phone`, `password`, `role` |
+| `POST` | `/login` | Public | Login with `credential` (email or phone) + `password` |
+| `GET`  | `/google` | Public | Initiate Google OAuth flow |
+| `GET`  | `/google/callback` | Public | OAuth callback — issues JWT cookie and redirects |
+| `GET`  | `/me` | Private | Returns the authenticated user from JWT cookie |
+| `POST` | `/logout` | Private | Clears the JWT cookie server-side |
+
+### Products — `/api/products`
+
+> All product routes require a valid JWT **and** `role: seller`.
+
+| Method | Endpoint | Access | Description |
+|--------|----------|--------|-------------|
+| `POST` | `/` | Seller | Create a product listing |
+| `GET`  | `/` | Seller | Fetch the authenticated seller's products |
+
+### Health Check
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/health` | Returns `{ status: 'OK' }` — liveness probe |
 
 ---
 
-## 🔒 Security Features
+## 🔒 Security
 
-- **JWT Authentication** - Stateless, secure token-based auth
-- **CORS Protection** - Configured for trusted origins
-- **Request Validation** - express-validator middleware
-- **Password Security** - Bcryptjs hashing with salt rounds
-- **Error Handling** - No sensitive information leakage
-- **HTTP Only Cookies** - Secure cookie configuration
-- **Environment Variables** - Sensitive data protection
+| Concern | Approach |
+|---------|----------|
+| Auth tokens | HTTP-only cookies — inaccessible to JS |
+| Password storage | bcryptjs — 10 salt rounds, hashed in Mongoose pre-save hook |
+| Input validation | `express-validator` on every mutating route |
+| Role enforcement | `authSeller` middleware — 403 on role mismatch |
+| OAuth | Passport.js session-less — no server-side session store required |
+| Error responses | Global `errorHandler` — never exposes stack traces in production |
+| Secrets | All credentials via `.env` — never committed |
 
 ---
 
-## 📦 Dependencies Highlights
+## 📦 Key Dependencies
 
 ### Backend
-- **Express 5.2.1** - Latest web framework
-- **Mongoose 9.6.3** - ODM for MongoDB
-- **Passport.js** - Authentication middleware
-- **express-validator** - Request validation
-- **bcryptjs** - Secure password hashing
-- **ImageKit** - Cloud image management
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `express` | 5.2.1 | Web framework |
+| `mongoose` | 9.6.3 | MongoDB ODM |
+| `passport-google-oauth20` | — | Google OAuth strategy |
+| `jsonwebtoken` | — | JWT sign / verify |
+| `bcryptjs` | — | Password hashing |
+| `express-validator` | — | Request validation |
+| `imagekit` | — | Cloud image upload |
+| `morgan` | — | HTTP request logging |
+| `cookie-parser` | — | Cookie parsing |
 
 ### Frontend
-- **React 19.0** - Latest React version
-- **Redux Toolkit** - State management
-- **React Router v7** - Client-side routing
-- **Tailwind CSS v4** - Utility-first CSS
-- **Axios** - Promise-based HTTP client
-- **Vite** - Next-gen build tool
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `react` | 19.0 | UI library |
+| `react-router-dom` | v7 | Client-side routing |
+| `@reduxjs/toolkit` | — | State management |
+| `axios` | — | HTTP client |
+| `react-toastify` | — | Toast notifications |
+| `vite` | — | Build tooling |
 
 ---
 
-## 🎓 Learning & Best Practices
-
-This project demonstrates:
-- ✅ Clean code architecture with separation of concerns
-- ✅ Middleware pattern for cross-cutting concerns
-- ✅ Service layer for business logic
-- ✅ Comprehensive error handling
-- ✅ Input validation and sanitization
-- ✅ RESTful API design principles
-- ✅ Component-based UI architecture
-- ✅ State management with Redux
-- ✅ Environment-based configuration
-- ✅ Responsive design patterns
-
----
-
-## 📚 Documentation
-
-- [Backend Documentation](Backend/README.md) *(if available)*
-- [Frontend Documentation](Frontend/README.md) *(if available)*
-- [Design System](Frontend/DESIGN.md)
-
----
-
-## 🔧 Available Scripts
+## 🔧 Scripts
 
 ### Backend
 ```bash
-npm run dev      # Start development server with hot reload
-npm run start    # Start production server
+npm run dev     # Development with hot-reload (nodemon)
+npm run start   # Production server
 ```
 
 ### Frontend
 ```bash
-npm run dev      # Start Vite development server
-npm run build    # Build for production
-npm run lint     # Run ESLint
-npm run preview  # Preview production build
+npm run dev     # Vite dev server
+npm run build   # Production bundle
+npm run lint    # ESLint
+npm run preview # Preview production build locally
 ```
+
+---
+
+## 🗺️ Roadmap
+
+- [ ] Buyer-facing product browsing connected to live API data
+- [ ] Seller dashboard — full CRUD UI for product management
+- [ ] Product detail page with image gallery
+- [ ] Cart and checkout flow
+- [ ] Pagination / infinite scroll on the product catalog
+- [ ] Image upload UI wired to ImageKit
+- [ ] Admin role — platform-wide oversight
 
 ---
 
 ## 🤝 Contributing
 
-Feel free to fork this repository and submit pull requests to help improve Threadora.
+1. Fork the repo and create a feature branch (`git checkout -b feat/your-feature`)
+2. Commit using [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, etc.)
+3. Open a pull request with a clear description of the change
 
 ---
 
 ## 📄 License
 
-This project is licensed under the ISC License - see LICENSE file for details.
+ISC License — see the LICENSE file for details.
 
 ---
 
-## 👨‍💻 About
-
-Threadora is built with a focus on modern development practices, scalability, and maintainability. It serves as a comprehensive example of full-stack JavaScript development with industry best practices.
-
-**Created with ❤️ using Node.js, React, and MongoDB**
+**Built with Node.js · React · MongoDB · ImageKit**
