@@ -1,6 +1,6 @@
 ﻿# 🧵 Threadora
 
-A full-stack e-commerce marketplace built on a modern JavaScript stack — multi-role authentication, a product catalog with rich client-side filtering, and a clean feature-sliced frontend architecture.
+A full-stack e-commerce marketplace built on a modern JavaScript stack - multi-role authentication, a product catalog with rich client-side filtering, and a clean feature-sliced frontend architecture.
 
 ---
 
@@ -9,8 +9,8 @@ A full-stack e-commerce marketplace built on a modern JavaScript stack — multi
 Threadora is a production-oriented full-stack application with a clear separation between **Buyer** and **Seller** roles. Sellers can list products with cloud-hosted images; Buyers browse a polished catalog with real-time filtering, color-swatch selection, and wishlist interactions — all gated behind JWT-authenticated, role-enforced API endpoints.
 
 Key engineering highlights:
-- **Role-based access control** — `authSeller` middleware gates every seller-only route
-- **Multi-strategy auth** — email/phone + password *and* Google OAuth 2.0 (Passport.js, stateless/session-less)
+- **Role-based access control** - `authSeller` middleware gates every seller-only route
+- **Multi-strategy auth** - email/phone + password *and* Google OAuth 2.0 (Passport.js, stateless/session-less)
 - **Feature-sliced frontend** — each domain (auth, products, shared) is a self-contained module with its own pages, hooks, services, states, and styles
 - **Redux Toolkit** auth state — `setUser / setLoading / setError` pattern with a `useAuth` custom hook as the single integration surface
 - **ImageKit** cloud storage — products support an `images[]` array backed by CDN delivery
