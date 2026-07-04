@@ -6,15 +6,15 @@ A full-stack e-commerce marketplace built on a modern JavaScript stack - multi-r
 
 ## 🎯 Overview
 
-Threadora is a production-oriented full-stack application with a clear separation between **Buyer** and **Seller** roles. Sellers can list products with cloud-hosted images; Buyers browse a polished catalog with real-time filtering, color-swatch selection, and wishlist interactions — all gated behind JWT-authenticated, role-enforced API endpoints.
+Threadora is a production-oriented full-stack application with a clear separation between **Buyer** and **Seller** roles. Sellers can list products with cloud-hosted images; Buyers browse a polished catalog with real-time filtering, color-swatch selection, and wishlist interactions - all gated behind JWT-authenticated, role-enforced API endpoints.
 
 Key engineering highlights:
 - **Role-based access control** - `authSeller` middleware gates every seller-only route
 - **Multi-strategy auth** - email/phone + password *and* Google OAuth 2.0 (Passport.js, stateless/session-less)
-- **Feature-sliced frontend** — each domain (auth, products, shared) is a self-contained module with its own pages, hooks, services, states, and styles
-- **Redux Toolkit** auth state — `setUser / setLoading / setError` pattern with a `useAuth` custom hook as the single integration surface
-- **ImageKit** cloud storage — products support an `images[]` array backed by CDN delivery
-- **Global error pipeline** — `notFoundHandler` + `errorHandler` middleware with no sensitive data leakage
+- **Feature-sliced frontend** - each domain (auth, products, shared) is a self-contained module with its own pages, hooks, services, states, and styles
+- **Redux Toolkit** auth state - `setUser / setLoading / setError` pattern with a `useAuth` custom hook as the single integration surface
+- **ImageKit** cloud storage - products support an `images[]` array backed by CDN delivery
+- **Global error pipeline** - `notFoundHandler` + `errorHandler` middleware with no sensitive data leakage
 
 ---
 
@@ -24,20 +24,20 @@ Key engineering highlights:
 ```
 Node.js + Express 5.2.1
 ├── Authentication
-│   ├── JWT (jsonwebtoken) — stateless, HTTP-only cookies
-│   ├── Passport.js — Google OAuth 2.0 (session: false)
-│   └── bcryptjs — pre-save hook hashing with 10 salt rounds
+│   ├── JWT (jsonwebtoken) - stateless, HTTP-only cookies
+│   ├── Passport.js - Google OAuth 2.0 (session: false)
+│   └── bcryptjs - pre-save hook hashing with 10 salt rounds
 ├── Database
 │   └── MongoDB + Mongoose 9.6.3
 ├── File Management
-│   ├── Multer — multipart/form-data parsing
-│   └── ImageKit — CDN-backed cloud image storage
+│   ├── Multer - multipart/form-data parsing
+│   └── ImageKit - CDN-backed cloud image storage
 ├── Validation & Security
-│   ├── express-validator — schema-level request validation
-│   ├── CORS — configured for trusted origins
-│   └── cookie-parser — HTTP-only cookie support
+│   ├── express-validator - schema-level request validation
+│   ├── CORS - configured for trusted origins
+│   └── cookie-parser - HTTP-only cookie support
 └── Observability
-    └── Morgan — HTTP request logging (dev format)
+    └── Morgan - HTTP request logging (dev format)
 ```
 
 ### Frontend
