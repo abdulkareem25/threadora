@@ -5,6 +5,8 @@ import { createProductValidator } from '../validators/product.validator.js';
 import {
   createProductController,
   getProductsController,
+  updateProductController,
+  deleteProductController,
   imagekitAuthController,
 } from '../controllers/product.controller.js';
 
@@ -14,6 +16,8 @@ const router = Router();
  * @route   GET /api/products/imagekit-auth
  * @desc    Get ImageKit authentication params for client-side upload
  * @access  Private (Seller only)
+ * NOTE: Must be declared BEFORE /:id routes so Express doesn't mistake
+ *       "imagekit-auth" for a dynamic :id segment.
  */
 router.get(
   '/imagekit-auth',
@@ -50,6 +54,33 @@ router.get(
   authMiddleware,
   authSeller,
   getProductsController
+);
+
+/**
+ * @route   PATCH /api/products/:id
+ * @desc    Partially update a product owned by the authenticated seller
+ * @access  Private (Seller only)
+ * @body    Any subset of { name, description, images, price, category, stock, variants }
+ * @returns { product }
+ */
+router.patch(
+  '/:id',
+  authMiddleware,
+  authSeller,
+  updateProductController
+);
+
+/**
+ * @route   DELETE /api/products/:id
+ * @desc    Delete a product owned by the authenticated seller
+ * @access  Private (Seller only)
+ * @returns { message }
+ */
+router.delete(
+  '/:id',
+  authMiddleware,
+  authSeller,
+  deleteProductController
 );
 
 export default router;

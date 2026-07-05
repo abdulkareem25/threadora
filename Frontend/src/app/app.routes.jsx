@@ -3,6 +3,7 @@ import Login from "../features/auth/pages/Login";
 import Signup from "../features/auth/pages/Signup";
 import Home from "../features/products/pages/Home";
 import AddProduct from "../features/products/pages/AddProduct";
+import SellerDashboard from "../features/products/pages/SellerDashboard";
 
 const router = createBrowserRouter([
   {
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
   {
     path: "/seller/add-product",
     element: <AddProduct />,
+  },
+  {
+    path: "/seller/dashboard",
+    element: <SellerDashboard />,
   },
 ]);
 

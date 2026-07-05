@@ -6,12 +6,16 @@ import {
   setError,
   setSuccess,
   setProducts,
+  removeProduct,
+  updateProductInList,
   resetProductState,
 } from '../states/product.slice';
 import {
   createProduct,
   getSellerProducts,
   uploadImageToImageKit,
+  updateProduct,
+  deleteProduct,
 } from '../services/product.api';
 
 const useProduct = () => {
@@ -79,6 +83,54 @@ const useProduct = () => {
     }
   };
 
+  /**
+   * Optimistically update a product in the list, rolling back on API failure.
+   * @param {string} id - Product _id
+   * @param {Object} data - Partial product fields to update
+   * @returns {{ success: boolean, error?: string }}
+   */
+  const editProduct = async (id, data) => {
+    // Take a snapshot of the current product for rollback
+    const snapshot = productState.products.find((p) => p._id === id);
+    // Optimistic update — merge data into snapshot
+    if (snapshot) {
+      dispatch(updateProductInList({ ...snapshot, ...data }));
+    }
+    try {
+      const res = await updateProduct(id, data);
+      // Replace optimistic copy with the server-canonical version
+      dispatch(updateProductInList(res.product));
+      return { success: true };
+    } catch (error) {
+      // Roll back if server rejected the update
+      if (snapshot) dispatch(updateProductInList(snapshot));
+      const msg = error.message || 'Failed to update product';
+      dispatch(setError(msg));
+      return { success: false, error: msg };
+    }
+  };
+
+  /**
+   * Optimistically remove a product from the list, rolling back on API failure.
+   * @param {string} id - Product _id
+   * @returns {{ success: boolean, error?: string }}
+   */
+  const destroyProduct = async (id) => {
+    // Take a snapshot of the current products list for rollback
+    const snapshot = [...productState.products];
+    dispatch(removeProduct(id));
+    try {
+      await deleteProduct(id);
+      return { success: true };
+    } catch (error) {
+      // Roll back the optimistic delete
+      dispatch(setProducts(snapshot));
+      const msg = error.message || 'Failed to delete product';
+      dispatch(setError(msg));
+      return { success: false, error: msg };
+    }
+  };
+
   const reset = () => dispatch(resetProductState());
 
   return {
@@ -86,8 +138,11 @@ const useProduct = () => {
     uploadImage,
     addProduct,
     fetchProducts,
+    editProduct,
+    destroyProduct,
     reset,
   };
 };
 
 export default useProduct;
+

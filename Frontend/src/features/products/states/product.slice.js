@@ -25,6 +25,17 @@ const productSlice = createSlice({
     setProducts(state, action) {
       state.products = action.payload;
     },
+    /** Optimistically remove a product from the list by its MongoDB _id */
+    removeProduct(state, action) {
+      state.products = state.products.filter((p) => p._id !== action.payload);
+    },
+    /** Optimistically replace a single product in the list after an update */
+    updateProductInList(state, action) {
+      const updated = action.payload;
+      state.products = state.products.map((p) =>
+        p._id === updated._id ? updated : p
+      );
+    },
     resetProductState(state) {
       state.loading = false;
       state.uploadingImages = false;
@@ -40,7 +51,10 @@ export const {
   setError,
   setSuccess,
   setProducts,
+  removeProduct,
+  updateProductInList,
   resetProductState,
 } = productSlice.actions;
 
 export default productSlice.reducer;
+

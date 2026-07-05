@@ -74,3 +74,30 @@ export const getSellerProducts = async () => {
     throw error.response ? error.response.data : new Error('Network error');
   }
 };
+
+/**
+ * Partially update a product by ID.
+ * @param {string} id - Product ObjectId
+ * @param {Object} data - Fields to update
+ */
+export const updateProduct = async (id, data) => {
+  try {
+    const response = await api.patch(`/${id}`, data);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error('Network error');
+  }
+};
+
+/**
+ * Delete a product by ID.
+ * @param {string} id - Product ObjectId
+ */
+export const deleteProduct = async (id) => {
+  try {
+    const response = await api.delete(`/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error('Network error');
+  }
+};

@@ -39,3 +39,46 @@ export const getProducts = async (sellerId) => {
 
   return products;
 };
+
+/**
+ * Partially update a product owned by the given seller.
+ * Only whitelisted fields are applied so callers cannot overwrite `seller`.
+ */
+export const updateProduct = async (id, sellerId, data) => {
+
+  const ALLOWED = ['name', 'description', 'images', 'price', 'category', 'stock', 'variants'];
+  const update = {};
+  ALLOWED.forEach((key) => {
+    if (data[key] !== undefined) update[key] = data[key];
+  });
+
+  const product = await Product.findOneAndUpdate(
+    { _id: id, seller: sellerId },
+    { $set: update },
+    { new: true, runValidators: true }
+  );
+
+  if (!product) {
+    const error = new Error('Product not found or you do not own this product.');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return product;
+};
+
+/**
+ * Permanently delete a product owned by the given seller.
+ */
+export const deleteProduct = async (id, sellerId) => {
+
+  const product = await Product.findOneAndDelete({ _id: id, seller: sellerId });
+
+  if (!product) {
+    const error = new Error('Product not found or you do not own this product.');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return product;
+};

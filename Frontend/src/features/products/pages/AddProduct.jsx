@@ -687,7 +687,7 @@ const AddProduct = () => {
       {/* ── Top Bar ── */}
       <div className="ap-topbar">
         <div className="ap-topbar-left">
-          <Link to="/" className="ap-back-btn" aria-label="Go back">
+          <Link to="/seller/dashboard" className="ap-back-btn" aria-label="Back to Seller Dashboard">
             <ArrowLeftIcon />
           </Link>
 
@@ -697,7 +697,7 @@ const AddProduct = () => {
           </Link>
 
           <div className="ap-breadcrumb" aria-label="Breadcrumb">
-            <span>Seller Dashboard</span>
+            <Link to="/seller/dashboard" style={{ color: 'inherit', textDecoration: 'none' }}>Seller Dashboard</Link>
             <span className="ap-breadcrumb-sep">/</span>
             <span className="ap-breadcrumb-current">Add Product</span>
           </div>

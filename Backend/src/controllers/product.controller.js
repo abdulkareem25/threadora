@@ -1,7 +1,9 @@
 import asyncHandler from '../utils/asyncHandler.js';
 import {
   createProduct,
-  getProducts
+  getProducts,
+  updateProduct,
+  deleteProduct,
 } from '../services/product.service.js';
 import { getImageKitAuthParams } from '../services/storage.service.js';
 
@@ -53,6 +55,37 @@ export const getProductsController = asyncHandler(async (req, res) => {
     success: true,
     message: 'Products retrieved successfully',
     products,
+  });
+});
+
+/**
+ * @route   PATCH /api/products/:id
+ * @desc    Partially update a product owned by the authenticated seller
+ * @access  Private – Seller only
+ */
+export const updateProductController = asyncHandler(async (req, res) => {
+
+  const product = await updateProduct(req.params.id, req.user._id, req.body);
+
+  res.status(200).json({
+    success: true,
+    message: 'Product updated successfully',
+    product,
+  });
+});
+
+/**
+ * @route   DELETE /api/products/:id
+ * @desc    Delete a product owned by the authenticated seller
+ * @access  Private – Seller only
+ */
+export const deleteProductController = asyncHandler(async (req, res) => {
+
+  await deleteProduct(req.params.id, req.user._id);
+
+  res.status(200).json({
+    success: true,
+    message: 'Product deleted successfully',
   });
 });
 
