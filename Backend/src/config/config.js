@@ -28,6 +28,14 @@ if(!process.env.IMAGEKIT_PRIVATE_KEY) {
   throw new Error('IMAGEKIT_PRIVATE_KEY is not defined in environment variables');
 }
 
+if(!process.env.IMAGEKIT_PUBLIC_KEY) {
+  throw new Error('IMAGEKIT_PUBLIC_KEY is not defined in environment variables');
+}
+
+if(!process.env.IMAGEKIT_URL_ENDPOINT) {
+  throw new Error('IMAGEKIT_URL_ENDPOINT is not defined in environment variables');
+}
+
 const config = {
   NODE_ENV: process.env.NODE_ENV,
   PORT: process.env.PORT,
@@ -37,6 +45,8 @@ const config = {
   CLIENT_ID: process.env.CLIENT_ID,
   CLIENT_SECRET: process.env.CLIENT_SECRET,
   IMAGEKIT_PRIVATE_KEY: process.env.IMAGEKIT_PRIVATE_KEY,
+  IMAGEKIT_PUBLIC_KEY: process.env.IMAGEKIT_PUBLIC_KEY,
+  IMAGEKIT_URL_ENDPOINT: process.env.IMAGEKIT_URL_ENDPOINT,
 };
 
 export default config;

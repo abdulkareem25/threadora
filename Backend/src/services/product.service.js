@@ -2,29 +2,32 @@ import Product from '../models/product.model.js';
 
 export const createProduct = async ({
   name,
-  description, 
-  images, 
-  price, 
-  category, 
-  stock
+  description,
+  images,
+  price,
+  category,
+  stock,
+  variants,
+  seller,
 }) => {
 
-  let product = await Product.findOne({ name, seller: req.user._id });
+  const existing = await Product.findOne({ name, seller });
 
-  if (product) {
-    const error = new Error('Product with the same name already exists, just update the stock instead');
+  if (existing) {
+    const error = new Error('A product with this name already exists. Update the stock instead.');
     error.statusCode = 409;
     throw error;
   }
 
-  product = await Product.create({
+  const product = await Product.create({
     name,
     description,
     images,
     price,
     category,
     stock,
-    seller: req.user._id
+    variants: variants || [],
+    seller,
   });
 
   return product;
@@ -32,13 +35,7 @@ export const createProduct = async ({
 
 export const getProducts = async (sellerId) => {
 
-  const products = await Product.find({ seller: sellerId });
-
-  if (products.length === 0) {
-    const error = new Error('No products found for this seller');
-    error.statusCode = 404;
-    throw error;
-  }
+  const products = await Product.find({ seller: sellerId }).sort({ createdAt: -1 });
 
   return products;
 };
