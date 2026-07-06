@@ -1067,3 +1067,73 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================================
+   SKELETON CARDS — loading state for product grid
+   ============================================================ */
+@keyframes p-shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+
+.p-skeleton-card {
+  background: var(--p-soft-cloud);
+  border-radius: var(--p-r-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.p-skeleton-image {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  background: linear-gradient(
+    90deg,
+    var(--p-soft-cloud) 25%,
+    #242424 50%,
+    var(--p-soft-cloud) 75%
+  );
+  background-size: 1200px 100%;
+  animation: p-shimmer 1.5s infinite linear;
+}
+
+.p-skeleton-body {
+  padding: 14px 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.p-skeleton-line {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    var(--p-soft-cloud) 25%,
+    #242424 50%,
+    var(--p-soft-cloud) 75%
+  );
+  background-size: 1200px 100%;
+  animation: p-shimmer 1.5s infinite linear;
+}
+.p-skeleton-line.is-full   { width: 100%; }
+.p-skeleton-line.is-medium { width: 70%; }
+.p-skeleton-line.is-short  { width: 45%; height: 10px; }
+
+/* ── No-image placeholder ── */
+.p-card-img-placeholder {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--p-soft-cloud);
+  color: var(--p-stone);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+/* ── Ink-subtle helper ── */
+.p-ink-subtle {
+  color: var(--p-ash);
+}

@@ -4,8 +4,11 @@ import {
   getProducts,
   updateProduct,
   deleteProduct,
+  getAllProducts,
+  getProductById,
 } from '../services/product.service.js';
 import { getImageKitAuthParams } from '../services/storage.service.js';
+
 
 /**
  * @route   POST /api/products
@@ -98,3 +101,36 @@ export const imagekitAuthController = asyncHandler(async (req, res) => {
   const params = getImageKitAuthParams();
   res.status(200).json({ success: true, ...params });
 });
+
+/**
+ * @route   GET /api/products/public
+ * @desc    Get all products (buyer-facing, no auth required)
+ * @access  Public
+ */
+export const getPublicProductsController = asyncHandler(async (req, res) => {
+  const limit = parseInt(req.query.limit) || 50;
+  const skip  = parseInt(req.query.skip)  || 0;
+
+  const products = await getAllProducts({ limit, skip });
+
+  res.status(200).json({
+    success: true,
+    message: 'Products retrieved successfully',
+    products,
+  });
+});
+
+/**
+ * @route   GET /api/products/public/:id
+ * @desc    Get a single product by ID (buyer-facing, no auth required)
+ * @access  Public
+ */
+export const getPublicProductByIdController = asyncHandler(async (req, res) => {
+  const product = await getProductById(req.params.id);
+
+  res.status(200).json({
+    success: true,
+    message: 'Product retrieved successfully',
+    product,
+  });
+});

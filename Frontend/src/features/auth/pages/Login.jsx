@@ -5,6 +5,7 @@ import Footer from '../../shared/components/Footer';
 import Header from '../../shared/components/Header';
 import GoogleButton from '../components/GoogleButton';
 import useAuth from '../hooks/useAuth';
+import store from '../../../app/app.store';
 import '../styles/auth.css';
 
 /* ─── Icons ─────────────────────────────────────────────────────────── */
@@ -72,11 +73,18 @@ const Login = () => {
     const success = await loginUser(credential.trim(), password);
 
     if (success) {
-      navigate('/');
+      // Redirect based on role — user is set in Redux by loginUser
+      const updatedUser = store.getState().auth.user;
+      if (updatedUser?.role === 'seller') {
+        navigate('/seller/dashboard');
+      } else {
+        navigate('/');
+      }
       setCredential('');
       setPassword('');
     }
   };
+
 
   return (
     <div className="auth-page">

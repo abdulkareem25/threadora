@@ -8,7 +8,10 @@ import {
   updateProductController,
   deleteProductController,
   imagekitAuthController,
+  getPublicProductsController,
+  getPublicProductByIdController,
 } from '../controllers/product.controller.js';
+
 
 const router = Router();
 
@@ -25,6 +28,20 @@ router.get(
   authSeller,
   imagekitAuthController
 );
+
+/**
+ * @route   GET /api/products/public
+ * @desc    Get all products — buyer-facing, no auth required
+ * NOTE: Must be before /:id so Express doesn't treat "public" as a product ID.
+ */
+router.get('/public', getPublicProductsController);
+
+/**
+ * @route   GET /api/products/public/:id
+ * @desc    Get a single product by ID — buyer-facing, no auth required
+ */
+router.get('/public/:id', getPublicProductByIdController);
+
 
 /**
  * @route   POST /api/products

@@ -101,3 +101,30 @@ export const deleteProduct = async (id) => {
     throw error.response ? error.response.data : new Error('Network error');
   }
 };
+
+/**
+ * Fetch all products for buyers (public, no auth required).
+ * @param {{ limit?: number, skip?: number }} opts
+ */
+export const getPublicProducts = async ({ limit = 50, skip = 0 } = {}) => {
+  try {
+    const response = await api.get(`/public?limit=${limit}&skip=${skip}`);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error('Network error');
+  }
+};
+
+/**
+ * Fetch a single product by ID (public, no auth required).
+ * @param {string} id - Product ObjectId
+ */
+export const getPublicProductById = async (id) => {
+  try {
+    const response = await api.get(`/public/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error('Network error');
+  }
+};
+

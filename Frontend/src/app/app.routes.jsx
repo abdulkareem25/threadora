@@ -4,11 +4,16 @@ import Signup from "../features/auth/pages/Signup";
 import Home from "../features/products/pages/Home";
 import AddProduct from "../features/products/pages/AddProduct";
 import SellerDashboard from "../features/products/pages/SellerDashboard";
+import ProductDetail from "../features/products/pages/ProductDetail";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <Home />,
+  },
+  {
+    path: "/products/:id",
+    element: <ProductDetail />,
   },
   {
     path: "/login",

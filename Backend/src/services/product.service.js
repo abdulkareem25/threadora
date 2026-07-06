@@ -82,3 +82,36 @@ export const deleteProduct = async (id, sellerId) => {
 
   return product;
 };
+
+/**
+ * Fetch all products (public — no seller filter).
+ * @param {{ limit?: number, skip?: number }} opts
+ */
+export const getAllProducts = async ({ limit = 50, skip = 0 } = {}) => {
+  const products = await Product
+    .find()
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .populate('seller', 'fullName');
+
+  return products;
+};
+
+/**
+ * Fetch a single product by its _id (public).
+ * @param {string} id
+ */
+export const getProductById = async (id) => {
+  const product = await Product
+    .findById(id)
+    .populate('seller', 'fullName');
+
+  if (!product) {
+    const error = new Error('Product not found.');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return product;
+};

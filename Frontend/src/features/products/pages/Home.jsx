@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import useAuth from '../../auth/hooks/useAuth';
+import { getPublicProducts } from '../services/product.api';
 import '../styles/products.css';
 
 /* ─── Icons ────────────────────────────────────────────────────────── */
@@ -50,165 +53,131 @@ const LogoIcon = () => (
   </svg>
 );
 
-/* ─── Mock product data ─────────────────────────────────────────────── */
-const ALL_PRODUCTS = [
-  {
-    id: 'p1',
-    name: 'Threads Utility Jacket',
-    subtitle: "Men's Athletic Outerwear",
-    img: '/product-jacket.png',
-    swatches: ['#2c2c2e', '#1a3a2a', '#3a1a1a', '#1a1a3a'],
-    activeSwatchIdx: 0,
-    badge: 'Just In',
-    price: 189,
-    salePrice: null,
-    category: 'Apparel',
-  },
-  {
-    id: 'p2',
-    name: 'Apex Training Shorts',
-    subtitle: "Men's Training Shorts",
-    img: '/product-shorts.png',
-    swatches: ['#1a2a4a', '#0c0c0c', '#2a1a0c'],
-    activeSwatchIdx: 0,
-    badge: null,
-    price: 65,
-    salePrice: 45,
-    category: 'Apparel',
-  },
-  {
-    id: 'p3',
-    name: 'Tech Mesh Tee',
-    subtitle: "Men's Performance T-Shirt",
-    img: '/product-tee.png',
-    swatches: ['#0c0c0c', '#f0f0f0', '#2c1a0c'],
-    activeSwatchIdx: 0,
-    badge: 'Member Exclusive',
-    price: 55,
-    salePrice: null,
-    category: 'Apparel',
-  },
-  {
-    id: 'p4',
-    name: 'Motion Training Pants',
-    subtitle: "Men's Training Trousers",
-    img: '/product-pants.png',
-    swatches: ['#2a2e1a', '#0c0c0c', '#1a2a2a', '#3a2a0c'],
-    activeSwatchIdx: 0,
-    badge: 'Just In',
-    price: 95,
-    salePrice: null,
-    category: 'Apparel',
-  },
-  {
-    id: 'p5',
-    name: 'Oversize Fleece Hoodie',
-    subtitle: "Unisex Pullover Hoodie",
-    img: '/product-hoodie.png',
-    swatches: ['#3a0c1a', '#0c0c0c', '#1a1a3a'],
-    activeSwatchIdx: 0,
-    badge: null,
-    price: 125,
-    salePrice: 89,
-    category: 'Apparel',
-  },
-  {
-    id: 'p6',
-    name: 'Aero Running Vest',
-    subtitle: "Men's Running Gilet",
-    img: '/product-vest.png',
-    swatches: ['#2c2c2e', '#1a2a1a', '#0c1a2a'],
-    activeSwatchIdx: 0,
-    badge: 'Coming Soon',
-    price: 145,
-    salePrice: null,
-    category: 'Apparel',
-  },
-];
+const UserIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"
+    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+);
 
-const FILTER_CHIPS = ['All', 'New & Featured', 'Apparel', 'Accessories', 'Sale'];
+const AlertIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"
+    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="8" x2="12" y2="12" />
+    <line x1="12" y1="16" x2="12.01" y2="16" />
+  </svg>
+);
 
-/* ─── Helper ─────────────────────────────────────────────────────────── */
-const calcPctOff = (original, sale) =>
-  Math.round(((original - sale) / original) * 100);
+/* ─── Categories derived from real data ─────────────────────────────── */
+const ALL_FILTER = 'All';
 
-/* ─── Swatch dot ──────────────────────────────────────────────────────── */
-const SwatchRow = ({ swatches, activeIdx }) => (
-  <div className="p-swatches" aria-label="Available colorways">
-    {swatches.slice(0, 5).map((color, i) => (
-      <span
-        key={i}
-        className={`p-swatch${i === activeIdx ? ' is-active' : ''}`}
-        style={{ backgroundColor: color }}
-        aria-label={`Color option ${i + 1}`}
-      />
-    ))}
-    {swatches.length > 5 && (
-      <span className="p-swatch-count">+{swatches.length - 5}</span>
-    )}
+/* ─── Helpers ────────────────────────────────────────────────────────── */
+const formatPrice = (price) => {
+  if (!price) return '—';
+  const sym = price.currency === 'INR' ? '₹' : price.currency;
+  return `${sym}${Number(price.amount).toLocaleString('en-IN')}`;
+};
+
+/* ─── Skeleton card ──────────────────────────────────────────────────── */
+const SkeletonCard = () => (
+  <div className="p-skeleton-card" aria-hidden="true">
+    <div className="p-skeleton-image" />
+    <div className="p-skeleton-body">
+      <div className="p-skeleton-line is-full" />
+      <div className="p-skeleton-line is-medium" />
+      <div className="p-skeleton-line is-short" />
+    </div>
   </div>
 );
 
 /* ─── Product card ───────────────────────────────────────────────────── */
-const ProductCard = ({ product }) => {
-  const pct = product.salePrice
-    ? calcPctOff(product.price, product.salePrice)
-    : null;
+const ProductCard = ({ product, onClick }) => {
+  const hasVariants = product.variants?.length > 0;
+  const variantCount = product.variants?.length ?? 0;
+
+  // Collect unique prices across variants to show a price range
+  const prices = hasVariants
+    ? product.variants.map((v) => v.price?.amount ?? 0)
+    : [product.price?.amount ?? 0];
+  const minPrice = Math.min(...prices);
+  const maxPrice = Math.max(...prices);
+  const priceStr =
+    minPrice === maxPrice
+      ? formatPrice({ amount: minPrice, currency: product.price?.currency ?? 'INR' })
+      : `${formatPrice({ amount: minPrice, currency: product.price?.currency ?? 'INR' })} – ${formatPrice({ amount: maxPrice, currency: product.price?.currency ?? 'INR' })}`;
+
+  const imageUrl = product.images?.[0];
+  const totalStock = hasVariants
+    ? product.variants.reduce((s, v) => s + (v.stock ?? 0), 0)
+    : product.stock;
 
   return (
-    <article className="p-card" aria-label={product.name}>
-      {/* Image — full-bleed on soft-cloud */}
+    <article
+      className="p-card"
+      aria-label={product.name}
+      onClick={onClick}
+      style={{ cursor: 'pointer' }}
+    >
       <div className="p-card-image-wrap">
-        <img
-          className="p-card-img"
-          src={product.img}
-          alt={product.name}
-          loading="lazy"
-        />
+        {imageUrl ? (
+          <img
+            className="p-card-img"
+            src={imageUrl}
+            alt={product.name}
+            loading="lazy"
+          />
+        ) : (
+          <div className="p-card-img-placeholder" aria-hidden="true">
+            <span>No image</span>
+          </div>
+        )}
 
-        {/* badge-promo: top-left overlay */}
-        {product.badge && (
-          <span className="p-badge-promo" aria-label={`Badge: ${product.badge}`}>
-            {product.badge}
+        {/* Category badge */}
+        {product.category && (
+          <span className="p-badge-promo" aria-label={`Category: ${product.category}`}>
+            {product.category}
           </span>
         )}
 
-        {/* Wishlist — button-icon-circular, top-right */}
+        {/* Wishlist */}
         <button
           className="p-card-wishlist"
           aria-label={`Add ${product.name} to wishlist`}
           type="button"
+          onClick={(e) => e.stopPropagation()}
         >
           <HeartIcon />
         </button>
       </div>
 
-      {/* Metadata — sits directly below with 8px gap between rows */}
       <div className="p-card-meta">
-        <SwatchRow swatches={product.swatches} activeIdx={product.activeSwatchIdx} />
+        {/* Variant count pill */}
+        {hasVariants && (
+          <p className="p-card-subtitle" style={{ marginBottom: 4 }}>
+            {variantCount} variant{variantCount !== 1 ? 's' : ''} available
+          </p>
+        )}
 
         <p className="p-card-name">{product.name}</p>
-        <p className="p-card-subtitle">{product.subtitle}</p>
+        <p className="p-card-subtitle">{product.category}</p>
 
-        {/* Price row */}
         <div className="p-card-price">
-          {product.salePrice ? (
-            <>
-              {/* badge-sale-text: red discounted price */}
-              <span className="p-price-sale">
-                ${product.salePrice}
-              </span>
-              {/* strike-through original */}
-              <span className="p-price-original">
-                ${product.price}
-              </span>
-              {/* % off in sale color */}
-              <span className="p-price-pct">{pct}% off</span>
-            </>
-          ) : (
-            <span className="p-price-regular">${product.price}</span>
-          )}
+          <span className="p-price-regular">{priceStr}</span>
         </div>
+
+        {/* Stock indicator */}
+        {totalStock === 0 && (
+          <p className="p-card-subtitle" style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: 4 }}>
+            Out of stock
+          </p>
+        )}
+        {totalStock > 0 && totalStock <= 5 && (
+          <p className="p-card-subtitle" style={{ color: '#f59e0b', fontSize: '0.75rem', marginTop: 4 }}>
+            Only {totalStock} left
+          </p>
+        )}
       </div>
     </article>
   );
@@ -216,39 +185,103 @@ const ProductCard = ({ product }) => {
 
 /* ─── Home page ──────────────────────────────────────────────────────── */
 const Home = () => {
-  const [activeFilter, setActiveFilter] = useState('All');
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const navigate = useNavigate();
+  const { logoutUser, fetchCurrentUser } = useAuth();
+  const user = useSelector((s) => s.auth.user);
+
+  const [drawerOpen, setDrawerOpen]   = useState(false);
+  const [products, setProducts]       = useState([]);
+  const [categories, setCategories]   = useState([ALL_FILTER]);
+  const [activeFilter, setActiveFilter] = useState(ALL_FILTER);
+  const [loading, setLoading]         = useState(true);
+  const [fetchError, setFetchError]   = useState(null);
+
+  /* ── Fetch user session on mount ──────────────────────────────── */
+  useEffect(() => {
+    fetchCurrentUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* ── Load products ───────────────────────────────────────────── */
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      setLoading(true);
+      setFetchError(null);
+      try {
+        const data = await getPublicProducts();
+        if (!cancelled) {
+          setProducts(data.products ?? []);
+          // Derive unique categories
+          const cats = [...new Set((data.products ?? []).map((p) => p.category).filter(Boolean))];
+          setCategories([ALL_FILTER, ...cats]);
+        }
+      } catch (err) {
+        if (!cancelled) setFetchError('Failed to load products. Please try again.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
+  /* ── Filtered list ───────────────────────────────────────────── */
+  const filteredProducts =
+    activeFilter === ALL_FILTER
+      ? products
+      : products.filter((p) => p.category === activeFilter);
+
+  /* ── Logout handler ──────────────────────────────────────────── */
+  const handleLogout = useCallback(async () => {
+    try {
+      await logoutUser();
+      navigate('/');
+    } catch {
+      /* ignore */
+    }
+  }, [logoutUser, navigate]);
 
   const navLinks = [
-    { label: 'New & Featured', to: '#' },
-    { label: 'Men', to: '#' },
+    { label: 'New & Featured', to: '#featured' },
+    { label: 'Men',   to: '#' },
     { label: 'Women', to: '#' },
-    { label: 'Kids', to: '#' },
-    { label: 'Sale', to: '#' },
+    { label: 'Kids',  to: '#' },
+    { label: 'Sale',  to: '#' },
   ];
-
-  const filteredProducts =
-    activeFilter === 'All'
-      ? ALL_PRODUCTS
-      : activeFilter === 'Sale'
-      ? ALL_PRODUCTS.filter((p) => p.salePrice !== null)
-      : ALL_PRODUCTS.filter((p) => p.category === activeFilter);
 
   return (
     <div className="products-page">
 
-      {/* ── Utility bar — component.utility-bar ── */}
+      {/* ── Utility bar ── */}
       <div className="p-utility-bar" role="navigation" aria-label="Secondary navigation">
         <a href="#">Find a Store</a>
         <span className="p-utility-bar-sep">·</span>
         <a href="#">Help</a>
         <span className="p-utility-bar-sep">·</span>
-        <Link to="/signup">Join Us</Link>
-        <span className="p-utility-bar-sep">·</span>
-        <Link to="/login">Sign In</Link>
+        {user ? (
+          <>
+            <span style={{ color: 'var(--p-ink-subtle)', fontSize: '0.75rem' }}>
+              Hi, {user.fullName?.split(' ')[0]}
+            </span>
+            <span className="p-utility-bar-sep">·</span>
+            <button
+              onClick={handleLogout}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', font: 'inherit', padding: 0 }}
+            >
+              Sign Out
+            </button>
+          </>
+        ) : (
+          <>
+            <Link to="/signup">Join Us</Link>
+            <span className="p-utility-bar-sep">·</span>
+            <Link to="/login">Sign In</Link>
+          </>
+        )}
       </div>
 
-      {/* ── Primary nav — component.primary-nav ── */}
+      {/* ── Primary nav ── */}
       <nav className="p-nav" aria-label="Primary navigation">
         {/* Hamburger — mobile */}
         <button
@@ -286,27 +319,24 @@ const Home = () => {
 
         {/* Right actions */}
         <div className="p-nav-actions">
-          {/* Search pill — component.search-pill */}
-          <div
-            className="p-search-pill"
-            role="search"
-            aria-label="Search products"
-          >
+          <div className="p-search-pill" role="search" aria-label="Search products">
             <SearchIcon />
             <span>Search</span>
           </div>
-          <button
-            id="nav-wishlist-btn"
-            className="p-icon-btn"
-            aria-label="Wishlist"
-          >
-            <HeartIcon />
-          </button>
-          <button
-            id="nav-bag-btn"
-            className="p-icon-btn"
-            aria-label="Shopping bag"
-          >
+          {user ? (
+            <Link
+              to={user.role === 'seller' ? '/seller/dashboard' : '/'}
+              className="p-icon-btn"
+              aria-label="My account"
+            >
+              <UserIcon />
+            </Link>
+          ) : (
+            <Link to="/login" className="p-icon-btn" aria-label="Sign in">
+              <UserIcon />
+            </Link>
+          )}
+          <button id="nav-bag-btn" className="p-icon-btn" aria-label="Shopping bag">
             <BagIcon />
           </button>
         </div>
@@ -341,16 +371,32 @@ const Home = () => {
           ))}
         </ul>
         <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <Link to="/login" className="p-btn-primary" style={{ textAlign: 'center' }}>
-            Sign In
-          </Link>
-          <Link to="/signup" className="p-btn-outline-on-image" style={{ textAlign: 'center', background: 'transparent', border: '1px solid var(--p-hairline)', color: 'var(--p-ink)' }}>
-            Join Us
-          </Link>
+          {user ? (
+            <button
+              onClick={handleLogout}
+              className="p-btn-primary"
+              style={{ textAlign: 'center', border: 'none', cursor: 'pointer', width: '100%' }}
+            >
+              Sign Out
+            </button>
+          ) : (
+            <>
+              <Link to="/login" className="p-btn-primary" style={{ textAlign: 'center' }}>
+                Sign In
+              </Link>
+              <Link
+                to="/signup"
+                className="p-btn-outline-on-image"
+                style={{ textAlign: 'center', background: 'transparent', border: '1px solid var(--p-hairline)', color: 'var(--p-ink)' }}
+              >
+                Join Us
+              </Link>
+            </>
+          )}
         </div>
       </nav>
 
-      {/* ── Campaign hero — component.campaign-tile ── */}
+      {/* ── Campaign hero ── */}
       <section className="p-hero" aria-label="Campaign hero">
         <img
           className="p-hero-img"
@@ -359,7 +405,6 @@ const Home = () => {
         />
         <div className="p-hero-overlay" aria-hidden="true" />
         <div className="p-hero-content">
-          {/* display-campaign: 96px Bebas Neue, uppercase, line-height 0.9 */}
           <h1 className="p-hero-headline">
             Everything<br />Threads<br />Together
           </h1>
@@ -367,10 +412,21 @@ const Home = () => {
             Premium athletic apparel engineered for performance,<br />
             designed for life beyond the court.
           </p>
-          {/* button-outline-on-image: white pill, bottom-left anchor */}
-          <a href="#featured" className="p-btn-outline-on-image" aria-label="Shop the collection">
-            Shop Now
-          </a>
+          {!user && (
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <a href="#featured" className="p-btn-outline-on-image" aria-label="Shop the collection">
+                Shop Now
+              </a>
+              <Link to="/login" className="p-btn-primary" style={{ padding: '14px 28px', borderRadius: '100px' }}>
+                Sign In
+              </Link>
+            </div>
+          )}
+          {user && (
+            <a href="#featured" className="p-btn-outline-on-image" aria-label="Shop the collection">
+              Shop Now
+            </a>
+          )}
         </div>
       </section>
 
@@ -387,35 +443,62 @@ const Home = () => {
               <a href="#" className="p-section-link" aria-label="View all products">View All</a>
             </div>
 
-            {/* Filter chip rail */}
-            <div className="p-filter-rail" role="group" aria-label="Filter products by category">
-              <div className="p-filter-chips">
-                {FILTER_CHIPS.map((chip) => (
-                  <button
-                    key={chip}
-                    id={`filter-chip-${chip.toLowerCase().replace(/\s+/g, '-')}`}
-                    className={`p-filter-chip${activeFilter === chip ? ' is-active' : ''}`}
-                    onClick={() => setActiveFilter(chip)}
-                    aria-pressed={activeFilter === chip}
-                    type="button"
-                  >
-                    {chip}
-                  </button>
-                ))}
+            {/* Error state */}
+            {fetchError && (
+              <div
+                role="alert"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '10px',
+                  background: '#fef2f2', border: '1px solid #fecaca',
+                  color: '#991b1b', borderRadius: '10px', padding: '14px 18px',
+                  margin: '24px 0', fontSize: '0.875rem',
+                }}
+              >
+                <AlertIcon /> {fetchError}
               </div>
-            </div>
+            )}
 
-            {/* Product grid — 3-up desktop, 2-up tablet, 1-up mobile */}
+            {/* Filter chip rail */}
+            {!loading && !fetchError && (
+              <div className="p-filter-rail" role="group" aria-label="Filter products by category">
+                <div className="p-filter-chips">
+                  {categories.map((chip) => (
+                    <button
+                      key={chip}
+                      id={`filter-chip-${chip.toLowerCase().replace(/\s+/g, '-')}`}
+                      className={`p-filter-chip${activeFilter === chip ? ' is-active' : ''}`}
+                      onClick={() => setActiveFilter(chip)}
+                      aria-pressed={activeFilter === chip}
+                      type="button"
+                    >
+                      {chip}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Product grid */}
             <div
               className="p-product-grid"
               role="list"
               aria-label="Product listing"
               style={{ marginTop: 'var(--p-xxl)' }}
             >
-              {filteredProducts.length > 0 ? (
+              {loading ? (
+                /* Skeleton state */
+                Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} role="listitem">
+                    <SkeletonCard />
+                  </div>
+                ))
+              ) : filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => (
-                  <div key={product.id} role="listitem">
-                    <ProductCard product={product} />
+                  <div key={product._id} role="listitem">
+                    <ProductCard
+                      product={product}
+                      onClick={() => navigate(`/products/${product._id}`)}
+                    />
                   </div>
                 ))
               ) : (
@@ -426,7 +509,7 @@ const Home = () => {
           </div>
         </section>
 
-        {/* ── Member benefit band — component.member-benefit-card ── */}
+        {/* ── Member benefit band ── */}
         <section className="p-member-band" aria-label="Member benefits">
           <div className="p-container">
             <div className="p-member-band-inner">
@@ -460,11 +543,10 @@ const Home = () => {
 
       </main>
 
-      {/* ── Footer — component.footer ── */}
+      {/* ── Footer ── */}
       <footer className="p-footer" aria-label="Site footer">
         <div className="p-container">
 
-          {/* 4-column layout */}
           <div className="p-footer-cols">
             <div>
               <h3 className="p-footer-col-title">Resources</h3>
@@ -504,7 +586,6 @@ const Home = () => {
             </div>
           </div>
 
-          {/* Fine-print row — utility-xs per spec */}
           <div className="p-footer-fine">
             <span className="p-footer-copy">
               © 2025 Threadora. All rights reserved.
