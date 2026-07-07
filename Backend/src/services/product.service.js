@@ -46,7 +46,7 @@ export const getProducts = async (sellerId) => {
  */
 export const updateProduct = async (id, sellerId, data) => {
 
-  const ALLOWED = ['name', 'description', 'images', 'price', 'category', 'stock', 'variants'];
+  const ALLOWED = ['name', 'description', 'images', 'price', 'category', 'colourShown', 'styleCode', 'stock', 'variants'];
   const update = {};
   ALLOWED.forEach((key) => {
     if (data[key] !== undefined) update[key] = data[key];
@@ -85,11 +85,15 @@ export const deleteProduct = async (id, sellerId) => {
 
 /**
  * Fetch all products (public — no seller filter).
- * @param {{ limit?: number, skip?: number }} opts
+ * @param {{ limit?: number, skip?: number, category?: string, excludeId?: string }} opts
  */
-export const getAllProducts = async ({ limit = 50, skip = 0 } = {}) => {
+export const getAllProducts = async ({ limit = 50, skip = 0, category, excludeId } = {}) => {
+  const filter = {};
+  if (category) filter.category = { $regex: new RegExp(`^${category}$`, 'i') };
+  if (excludeId) filter._id = { $ne: excludeId };
+
   const products = await Product
-    .find()
+    .find(filter)
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)

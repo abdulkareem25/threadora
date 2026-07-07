@@ -128,3 +128,18 @@ export const getPublicProductById = async (id) => {
   }
 };
 
+/**
+ * Fetch related products by category, excluding the current product.
+ * @param {string} category - Category name to filter by
+ * @param {string} excludeId - Product ID to exclude (current product)
+ * @param {number} limit - Max number of results
+ */
+export const getRelatedProducts = async (category, excludeId, limit = 6) => {
+  try {
+    const params = new URLSearchParams({ category, excludeId, limit }).toString();
+    const response = await api.get(`/public?${params}`);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error('Network error');
+  }
+};

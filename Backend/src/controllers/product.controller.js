@@ -108,10 +108,12 @@ export const imagekitAuthController = asyncHandler(async (req, res) => {
  * @access  Public
  */
 export const getPublicProductsController = asyncHandler(async (req, res) => {
-  const limit = parseInt(req.query.limit) || 50;
-  const skip  = parseInt(req.query.skip)  || 0;
+  const limit     = parseInt(req.query.limit)    || 50;
+  const skip      = parseInt(req.query.skip)     || 0;
+  const category  = req.query.category           || '';
+  const excludeId = req.query.excludeId          || '';
 
-  const products = await getAllProducts({ limit, skip });
+  const products = await getAllProducts({ limit, skip, category, excludeId });
 
   res.status(200).json({
     success: true,

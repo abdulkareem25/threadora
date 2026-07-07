@@ -94,6 +94,16 @@ const productSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  colourShown: {
+    type: String,
+    trim: true,
+    default: '',
+  },
+  styleCode: {
+    type: String,
+    trim: true,
+    default: '',
+  },
   stock: {
     type: Number,
     required: true,
