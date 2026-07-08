@@ -204,7 +204,7 @@ IMAGEKIT_URL_ENDPOINT=your_imagekit_url_endpoint
 
 ```bash
 npm run dev     # Development with hot-reload (nodemon)
-npm run start   # Production server
+npm start   # Production server
 ```
 
 ### Frontend Setup
