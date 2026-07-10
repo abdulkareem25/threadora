@@ -132,7 +132,7 @@ Threadora/
 
 ### Authentication & Authorization
 - ✅ JWT issued on login/signup, stored in HTTP-only cookies
-- ✅ Google OAuth 2.0 — Passport strategy, session-less (`session: false`)
+- ✅ Google OAuth 2.0 - Passport strategy, session-less (`session: false`)
 - ✅ bcryptjs pre-save hook — passwords hashed before hitting the DB
 - ✅ `authMiddleware` — validates JWT, attaches `req.user` to the request
 - ✅ `authSeller` — role guard; rejects non-seller requests with 403
