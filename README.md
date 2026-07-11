@@ -44,16 +44,16 @@ Node.js + Express 5.2.1
 ```
 React 19.0 + Vite
 ├── State Management
-│   └── Redux Toolkit — authSlice (user, loading, error)
+│   └── Redux Toolkit - authSlice (user, loading, error)
 ├── Routing
-│   └── React Router v7 — createBrowserRouter
+│   └── React Router v7 - createBrowserRouter
 ├── Styling
 │   └── Tailwind CSS v4 + scoped feature CSS
 ├── HTTP Client
-│   └── Axios — centralised auth API service
+│   └── Axios - centralised auth API service
 └── UI/UX
-    ├── React Toastify — toast notifications
-    ├── Inline SVG icon system — zero external icon dependency
+    ├── React Toastify - toast notifications
+    ├── Inline SVG icon system - zero external icon dependency
     └── Color swatch selector, wishlist toggle, filter chips
 ```
 
